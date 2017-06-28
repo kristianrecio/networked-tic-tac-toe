@@ -34,15 +34,21 @@ def wait_to_play():
     paired = []
     while True:
         for i in clients:
-            if i[2]:
+            if len(paired) == 2:
+                _thread.start_new_thread(play_game, (paired[0], paired[1]))
+                paired.clear()
+            if i in paired or i[3]:
+                continue
+            elif i[2]:
                 paired.append(i)
-                clients.remove(i)
+                i[3] = True
+                if len(paired) == 2:
+                    _thread.start_new_thread(play_game, (paired[0], paired[1]))
+                    paired.clear()
             else:
                 if i in paired:
                     paired.remove(i)
-            if len(paired) == 2:
-                _thread.start_new_thread(play_game, (paired[0], paired[1]))
-                paired = []
+
 
 s = socket.socket()
 host = socket.gethostname()
@@ -54,7 +60,7 @@ _thread.start_new_thread(wait_to_play, ())
 s.listen(5)
 while True:
     c, addr = s.accept()
-    clients.append([c, addr, False])
+    clients.append([c, addr, False, False])
     _thread.start_new_thread(client_connection, (len(clients) - 1,))
 
 
