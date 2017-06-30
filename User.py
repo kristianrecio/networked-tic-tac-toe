@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import *
 
-def toggle_text1(button):
+def toggle_text1(button):  # This function changes the blank button to what it needs to be
     if button['text'] == "":
         button['text'] = "X"
     elif button['text'] == "X":
@@ -9,6 +9,7 @@ def toggle_text1(button):
     else:
         button['text'] = ""
 
+#These are the buttons for the game
 root = tk.Tk()
 root.title("Network Tic-Tac-Toe")
 button1 = tk.Button(text="", width=5, command= lambda : toggle_text1(button1))
