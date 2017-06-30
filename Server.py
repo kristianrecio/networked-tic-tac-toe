@@ -7,7 +7,6 @@ def client_connection(client_num):
     conn = clients[client_num][0]
     address = clients[client_num][1]
     print("Got connection from", address)
-    conn.send(b"You are now connected to the server.")
     while True:
         if not clients[client_num][2]:
             message = conn.recv(1024).decode("utf-8")

@@ -2,84 +2,65 @@ import socket
 import sys
 
 
-def main():
-    print("-----Menu-----\n1: Play Game\n2: Quit")
-    while True:
-        answer = input("Enter a choice: ")
-        if answer == "1":
-            s.send(b"start")
-            break
-        elif answer == "2":
-            s.send(b"quit")
-            s.close()
-            sys.exit(0)
-        else:
-            print(answer + " is not an option.")
+def main():                                                 # Main function
+    print("-----Menu-----\n1: Play Game\n2: Quit")          # Prints out menu to client
+    while True:                                             # while True
+        answer = input("Enter a choice: ")                  #   Prompts client for a choice
+        if answer == "1":                                   #       If client chooses 1
+            s.send(b"start")                                #           Sends to the server "start"
+            break                                           #           breaks out of while loop
+        elif answer == "2":                                 #       Elif client chooses 2
+            s.send(b"quit")                                 #           Sends to the server "quit"
+            s.close()                                       #           Closes connection
+            sys.exit(0)                                     #           Closes the program
+        else:                                               #       Else
+            print(answer + " is not an option.")            #           Prints out input was invalid
 
-    print("Waiting for another player...")
-    while True:
-        x = s.recv(1024).decode("utf-8")
-        if x == "found":
-            print("Starting game...")
-            break
+    print("Waiting for another player...")                  # Prints out waiting for another player
+    while True:                                             # while True
+        x = s.recv(1024).decode("utf-8")                    # Waits to receive string from server
+        if x == "found":                                    # If received string is "found"
+            print("Starting game...")                       #   Print outs "Starting game"
+            break                                           #   Breaks out of while loop
 
-    play_game()
-
-
-def play_game():
-    player_turn = s.recv(1024).decode("utf-8")                          # Receive which player you are
-    print(player_turn)
-    winner = s.recv(1024).decode("utf-8")                               # Receive winner (True or False)
-    turn = ""
-    while winner != "True":                                             # Start while loop
-        board = s.recv(1024).decode("utf-8")                            # Receive board
-        print(board)
-
-        turn = s.recv(1024).decode("utf-8")                             # Receive who's turn it is
-        print(turn)
-
-        if turn == "Your Turn":                                         # If it is your turn
-            move = input("Enter a choice: ")
-            s.send(move.encode())                                       # Send your choice
-
-        winner = s.recv(1024).decode("utf-8")                           # Receive winner (True or False)
-                                                                        # End while
-
-    board = s.recv(1024).decode("utf-8")
-    print(board)
-
-    if turn == "Your Turn":
-        print("You win!")
-    else:
-        print("They win!")
-
-    main()
+    play_game()                                             # Calls play_game function
 
 
-def player2():
-    print("You are player 2")
+def play_game():                                            # Play game function
+    player_turn = s.recv(1024).decode("utf-8")              # Receive which player you are
+    print(player_turn)                                      # Prints out which player you are
+    winner = s.recv(1024).decode("utf-8")                   # Receive winner will always be False
+    turn = ""                                               # Initializes turn
+    while winner != "True":                                 # while there is no winner
+        board = s.recv(1024).decode("utf-8")                #   Receive board from server
+        print(board)                                        #   Print the board
 
-    while True:
-        board = s.recv(1024).decode("utf-8")
-        print(board)
+        turn = s.recv(1024).decode("utf-8")                 #   Receive who's turn it is
+        print(turn)                                         #   Print out who's turn it is
 
-        turn = s.recv(1024).decode("utf-8")
-        print(turn)
+        if turn == "Your Turn":                             #   If it is your turn
+            move = input("Enter a choice: ")                #       Prompts client for choice
+            s.send(move.encode())                           #       Sends choice the server
 
-        if turn == "Your Turn":
-            move = input("Enter a choice: ")
-            s.send(move.encode())
+        winner = s.recv(1024).decode("utf-8")               # Receive winner (True or False)
 
-host = socket.gethostname()
+    board = s.recv(1024).decode("utf-8")                    # Receive board from server
+    print(board)                                            # Prints out the board
+
+    if turn == "Your Turn":                                 # If it was your turn
+        print("You win!")                                   #   Prints out you win!
+    else:                                                   # Else
+        print("They win!")                                  #   Prints out they win!
+
+    main()                                                  # Calls the main function (Recursion)
+
+'''
+START OF THE PROGRAM
+'''
+
+host = socket.gethostname()                                 # Server part
 port = 1234
-
 s = socket.socket()
 s.connect((host, port))
 
-msg1 = s.recv(1024).decode("utf-8")
-print(msg1)
-
 main()
-
-wait = input("Hit any key.")
-s.close()
