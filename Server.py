@@ -1,5 +1,3 @@
-# Server Class
-
 import socket
 import _thread
 
@@ -9,46 +7,116 @@ def client_connection(client_num):
     conn = clients[client_num][0]
     address = clients[client_num][1]
     print("Got connection from", address)
+    conn.send(b"You are now connected to the server.")
     while True:
-        message = conn.recv(1024).decode("utf-8")
-        if message == "start":
-            clients[client_num][2] = True
-            break
-        elif message == "stop":
-            clients[client_num][2] = False
-            break
-        elif message == "quit":
-            clients.remove(client_num)
-            conn.close()
-            break
+        if not clients[client_num][2]:
+            message = conn.recv(1024).decode("utf-8")
+            if message == "start":
+                paired.append(clients[client_num])
+                clients[client_num][2] = True
+            elif message == "quit":
+                clients[client_num] = None
+                conn.close()
+                break
 
 
 def play_game(player1, player2):
     print("Starting a game of Tic Tac Toe")
     print("With", player1[1], "and", player2[1])
-    conn1 = player1[0]
-    conn2 = player2[0]
+    player1[0].send(b"found")
+    player2[0].send(b"found")
+
+    choices = []
+
+    for x in range(0, 9):
+        choices.append(str(x + 1))
+
+    player1_turn = True
+    winner = False
+    player1[0].send(b"You are player 1")
+    player2[0].send(b"You are player 2")
+    send_winner(winner, player1[0], player2[0])
+    while not winner:
+        send_board(choices, player1[0], player2[0])
+
+        if player1_turn:
+            player1[0].send(b"Your Turn")
+            player2[0].send(b"Player 1's Turn")
+            choice = player1[0].recv(1024).decode("utf-8")
+            choices[int(choice) - 1] = "X"
+        else:
+            player1[0].send(b"Player 2's Turn")
+            player2[0].send(b"Your Turn")
+            choice = player2[0].recv(1024).decode("utf-8")
+            choices[int(choice) - 1] = "O"
+
+        player1_turn = not player1_turn
+
+        for x in range(0, 3):
+            y = x * 3
+            if choices[y] == choices[(y + 1)] and choices[y] == choices[(y + 2)]:
+                winner = True
+                send_winner(winner, player1[0], player2[0])
+                send_board(choices, player1[0], player2[0])
+            if choices[x] == choices[(x + 3)] and choices[x] == choices[(x + 6)]:
+                winner = True
+                send_winner(winner, player1[0], player2[0])
+                send_board(choices, player1[0], player2[0])
+
+        if ((choices[0] == choices[4] and choices[0] == choices[8]) or
+                (choices[2] == choices[4] and choices[4] == choices[6])):
+            winner = True
+            send_winner(winner, player1[0], player2[0])
+            send_board(choices, player1[0], player2[0])
+
+        send_winner(winner, player1[0], player2[0])
+
+    if not player1_turn:
+        print("Player 1 wins!")
+    else:
+        print("Player 2 wins!")
+
+    player1[2] = False
+    player2[2] = False
+
+
+def send_winner(winner, conn1, conn2):
+    conn1.send(str(winner).encode())
+    conn2.send(str(winner).encode())
+
+
+def send_board(choices, conn1, conn2):
+    board = "|\n -----\n|" + choices[0] + "|" + choices[1] + "|" + choices[2] + \
+            "|\n -----\n|" + choices[3] + "|" + choices[4] + "|" + choices[5] + \
+            "|\n -----\n|" + choices[6] + "|" + choices[7] + "|" + choices[8] + \
+            "|\n -----\n|"
+    conn1.send(board.encode())
+    conn2.send(board.encode())
 
 
 def wait_to_play():
-    paired = []
     while True:
-        for i in clients:
-            if len(paired) == 2:
-                _thread.start_new_thread(play_game, (paired[0], paired[1]))
-                paired.clear()
-            if i in paired or i[3]:
-                continue
-            elif i[2]:
-                paired.append(i)
-                i[3] = True
-                if len(paired) == 2:
-                    _thread.start_new_thread(play_game, (paired[0], paired[1]))
-                    paired.clear()
-            else:
-                if i in paired:
-                    paired.remove(i)
+        if len(paired) >= 2:
+            _thread.start_new_thread(play_game, (paired[0], paired[1]))
+            del paired[0]
+            del paired[0]
 
+
+def add_client(client):
+    added = False
+    pos = None
+    for i in range(len(clients)):
+        if clients[i] is None:
+            clients[i] = client
+            pos = i
+            added = True
+            break
+
+    if not added:
+        clients.append(client)
+        pos = len(clients) - 1
+
+    return pos
 
 s = socket.socket()
 host = socket.gethostname()
@@ -56,11 +124,11 @@ port = 1234
 s.bind((host, port))
 
 clients = []
+paired = []
 _thread.start_new_thread(wait_to_play, ())
 s.listen(5)
 while True:
     c, addr = s.accept()
-    clients.append([c, addr, False, False])
-    _thread.start_new_thread(client_connection, (len(clients) - 1,))
-
+    pos = add_client([c, addr, False])
+    _thread.start_new_thread(client_connection, (pos,))
 
