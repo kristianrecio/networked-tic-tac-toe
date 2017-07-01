@@ -38,9 +38,15 @@ def play_game():                                            # Play game function
         turn = s.recv(1024).decode("utf-8")                 #   Receive who's turn it is
         print(turn)                                         #   Print out who's turn it is
 
-        if turn == "Your Turn":                             #   If it is your turn
-            move = input("Enter a choice: ")                #       Prompts client for choice
-            s.send(move.encode())                           #       Sends choice the server
+        if turn == "Your Turn":                             # If it is your turn
+            while True:                                     #   while True:
+                move = input("Enter a choice: ")            #       Prompt client for move
+                s.send(move.encode())                       #       Send move to server
+                valid = s.recv(1024).decode("utf-8")        #       Receive validity of move from server
+                if valid == "Valid":                        #       If move was valid
+                    break                                   #           break out of loop
+                else:                                       #       Else
+                    print("Invalid move.")                  #           Print out it was invalid
 
         winner = s.recv(1024).decode("utf-8")               # Receive winner (True or False)
 

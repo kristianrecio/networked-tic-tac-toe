@@ -41,13 +41,26 @@ def play_game(player1, player2):
         if player1_turn:
             player1[0].send(b"Your Turn")
             player2[0].send(b"Player 1's Turn")
-            choice = player1[0].recv(1024).decode("utf-8")
-            choices[int(choice) - 1] = "X"
+            while True:
+                choice = player1[0].recv(1024).decode("utf-8")
+                if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
+                    print("Invalid move. Try again.")
+                    player1[0].send(b"Invalid")
+                else:
+                    choices[int(choice) - 1] = "X"
+                    player1[0].send(b"Valid")
+                    break
         else:
             player1[0].send(b"Player 2's Turn")
             player2[0].send(b"Your Turn")
-            choice = player2[0].recv(1024).decode("utf-8")
-            choices[int(choice) - 1] = "O"
+            while True:
+                choice = player2[0].recv(1024).decode("utf-8")
+                if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
+                    player2[0].send(b"Invalid")
+                else:
+                    choices[int(choice) - 1] = "O"
+                    player2[0].send(b"Valid")
+                    break
 
         player1_turn = not player1_turn
 
