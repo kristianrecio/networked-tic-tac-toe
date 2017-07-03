@@ -130,4 +130,3 @@ while True:
     c, addr = s.accept()
     pos = add_client([c, addr, False])
     _thread.start_new_thread(client_connection, (pos,))
-
