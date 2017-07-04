@@ -1,5 +1,6 @@
 import tkinter as tk
 
+
 class MainWindow(tk.Tk):
 
     def __init__(self):
@@ -9,6 +10,7 @@ class MainWindow(tk.Tk):
         # on top of each other, then the one we want visible
         # will be raised above the others
         container = tk.Frame(self)
+        self.title("Network Tic-Tac-Toe")
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(1, weight=10)
         container.grid_columnconfigure(1, weight=10)
@@ -36,7 +38,7 @@ class Start(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is the start page")
+        label = tk.Label(self, text="Welcome to Network Tic-Tac-Toe")
         label.pack(side="top", fill="x", pady=100, padx=100)
 
         # This button goes to the User frame
@@ -51,7 +53,7 @@ class User(tk.Frame):  # This is the user windows
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="Tic-Tac-Toe")
+        label = tk.Label(self, text="")
         label.pack(side="top", fill="x", pady=100, padx=100)
 
         def toggle_text1(button):  # This function changes the blank button to what it needs to be
