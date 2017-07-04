@@ -64,7 +64,7 @@ def play_game():                                            # Play game function
 '''
 START OF THE PROGRAM
 '''
-user = User
+user = User()
 host = socket.gethostname()                                 # Server part
 port = 1234
 s = socket.socket()
