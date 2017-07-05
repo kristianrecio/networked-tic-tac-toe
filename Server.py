@@ -13,6 +13,7 @@ def client_connection(client_num):
             if message == "start":
                 paired.append(clients[client_num])
                 clients[client_num][2] = True
+                print(clients[client_num][1], "is waiting to play the game.")
             elif message == "quit":
                 clients[client_num] = None
                 conn.close()
@@ -32,35 +33,37 @@ def play_game(player1, player2):
 
     player1_turn = True
     winner = False
-    player1[0].send(b"You are player 1")
-    player2[0].send(b"You are player 2")
+    player1[0].send(b"1")
+    player2[0].send(b"2")
     send_winner(winner, player1[0], player2[0])
     while not winner:
-        send_board(choices, player1[0], player2[0])
+        # send_board(choices, player1[0], player2[0])
 
         if player1_turn:
-            player1[0].send(b"Your Turn")
-            player2[0].send(b"Player 1's Turn")
-            while True:
-                choice = player1[0].recv(1024).decode("utf-8")
-                if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
-                    print("Invalid move. Try again.")
-                    player1[0].send(b"Invalid")
-                else:
-                    choices[int(choice) - 1] = "X"
-                    player1[0].send(b"Valid")
-                    break
+            # player1[0].send(b"Your Turn")
+            # player2[0].send(b"Player 1's Turn")
+            # while True:
+            choice = player1[0].recv(1024).decode("utf-8")
+                # if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
+                    # print("Invalid move. Try again.")
+                    # player1[0].send(b"Invalid")
+                # else:
+            choices[int(choice) - 1] = "X"
+            player2[0].send(choice.encode())
+                    # player1[0].send(b"Valid")
+                    # break
         else:
-            player1[0].send(b"Player 2's Turn")
-            player2[0].send(b"Your Turn")
-            while True:
-                choice = player2[0].recv(1024).decode("utf-8")
-                if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
-                    player2[0].send(b"Invalid")
-                else:
-                    choices[int(choice) - 1] = "O"
-                    player2[0].send(b"Valid")
-                    break
+            # player1[0].send(b"Player 2's Turn")
+            # player2[0].send(b"Your Turn")
+            # while True:
+            choice = player2[0].recv(1024).decode("utf-8")
+                # if choices[int(choice) - 1] == "X" or choices[int(choice) - 1] == "O":
+                    # player2[0].send(b"Invalid")
+                # else:
+            choices[int(choice) - 1] = "O"
+                    # player2[0].send(b"Valid")
+                    # break
+            player1[0].send(choice.encode())
 
         player1_turn = not player1_turn
 
@@ -69,17 +72,17 @@ def play_game(player1, player2):
             if choices[y] == choices[(y + 1)] and choices[y] == choices[(y + 2)]:
                 winner = True
                 send_winner(winner, player1[0], player2[0])
-                send_board(choices, player1[0], player2[0])
+                # send_board(choices, player1[0], player2[0])
             if choices[x] == choices[(x + 3)] and choices[x] == choices[(x + 6)]:
                 winner = True
                 send_winner(winner, player1[0], player2[0])
-                send_board(choices, player1[0], player2[0])
+                # send_board(choices, player1[0], player2[0])
 
         if ((choices[0] == choices[4] and choices[0] == choices[8]) or
                 (choices[2] == choices[4] and choices[4] == choices[6])):
             winner = True
             send_winner(winner, player1[0], player2[0])
-            send_board(choices, player1[0], player2[0])
+            # send_board(choices, player1[0], player2[0])
 
         send_winner(winner, player1[0], player2[0])
 
@@ -93,8 +96,12 @@ def play_game(player1, player2):
 
 
 def send_winner(winner, conn1, conn2):
-    conn1.send(str(winner).encode())
-    conn2.send(str(winner).encode())
+    if winner:
+        conn1.send(b"T")
+        conn2.send(b"T")
+    else:
+        conn1.send(b"F")
+        conn2.send(b"F")
 
 
 def send_board(choices, conn1, conn2):
