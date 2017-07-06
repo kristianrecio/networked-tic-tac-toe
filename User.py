@@ -18,7 +18,7 @@ class MainWindow(tk.Tk):
         container.grid_columnconfigure(1, weight=10)
 
         self.frames = {}
-        for F in (Start, User, Wait):
+        for F in (Start, User, Wait, Result):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -73,6 +73,10 @@ class User(tk.Frame):  # This is the user windows
         label = tk.Label(self, text="")
         label.pack(side="top", fill="x", pady=100, padx=100)
 
+        label = tk.Label(self, text="Player[i]")
+        label.place(relx=.1, rely=.2, anchor="center")
+        label = tk.Label(self, text="waiting for other players move")
+        label.place(relx=.5, rely=.9, anchor="center")
         self.button_list = []
         self.buttons()
 
@@ -218,6 +222,19 @@ class Wait(tk.Frame):  # This window waits for the other player to submit
         # start = tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("Start"))
         # start.place(relx=.5, rely=.7, anchor="center")
 
+class Result(tk.Frame):  # This window waits for the other player to submit
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        print("Here already")
+        label = tk.Label(self, text="Winner winner chicken dinner play[i] wins")
+        label.pack(side="top", fill="x", pady=100, padx=100)
+        label = tk.Label(self, text="Do you want to play again?")
+        label.place(relx=.6, rely=.4, anchor="center")
+        user = tk.Button(self, text="Start", command=lambda: [controller.show_frame("Wait"), s.send(b"start"), _thread.start_new_thread(self.waiting, ())])
+        quits = tk.Button(self, text="Quit", command=lambda: controller.quit())  # This quits the program
+        user.place(relx=.4, rely=.7, anchor="center")
+        quits.place(relx=.6, rely=.7, anchor="center")
 
 host = socket.gethostname()  # Server part
 port = 1234
