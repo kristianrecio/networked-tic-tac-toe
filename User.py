@@ -139,90 +139,127 @@ class User(tk.Frame):  # This is the user windows
         self.submit.place(relx=.5, rely=.8, anchor="center")  # This button goes to the Wait frame
 
     def send_move(self):
-        global turn
+        global turn, num_of_moves
         if turn == 1 and self.move != "":
+            print("Sent:", self.move)
+            num_of_moves += 1
             s.send(self.move.encode())
             for i in range(len(self.button_list) + 1):
                 if str(i) == self.move:
                     self.set_button(self.button_list[i - 1], 1)
                     break
-            turn = 0
 
     def listen_for_move(self):
+        global player, turn, winner, player_winner, num_of_moves, result_msg
         while True:
             if player == 0:
                 continue
             self.player_label['text'] = "Player " + str(player)
 
             while True:
-                global turn
-                global winner
                 if turn == 1:
                     continue
                 else:
+                    print("Listen for move")
                     self.submit['state'] = 'disabled'
                     self.wait_label['text'] = "Waiting for other player"
-                    if winner == "T":
-                        break
-                    pos = s.recv(1).decode("utf-8")
-                    print("pos:", pos)
-                    if pos == "1":
-                        self.set_button(self.button1, 2)
-                    elif pos == "2":
-                        self.set_button(self.button2, 2)
-                    elif pos == "3":
-                        self.set_button(self.button3, 2)
-                    elif pos == "4":
-                        self.set_button(self.button4, 2)
-                    elif pos == "5":
-                        self.set_button(self.button5, 2)
-                    elif pos == "6":
-                        self.set_button(self.button6, 2)
-                    elif pos == "7":
-                        self.set_button(self.button7, 2)
-                    elif pos == "8":
-                        self.set_button(self.button8, 2)
-                    elif pos == "9":
-                        self.set_button(self.button9, 2)
-                    winner = s.recv(1).decode("utf-8")
-                    print("Winner:", winner)
-                    turn = 1
-                    self.wait_label['text'] = ""
-                    self.submit['state'] = 'normal'
+                    if winner == "T" or num_of_moves == 9:
+                        pass
+                    else:
+                        pos = s.recv(1).decode("utf-8")
+                        print("pos:", pos)
+                        if pos == "1":
+                            self.set_button(self.button1, 2)
+                        elif pos == "2":
+                            self.set_button(self.button2, 2)
+                        elif pos == "3":
+                            self.set_button(self.button3, 2)
+                        elif pos == "4":
+                            self.set_button(self.button4, 2)
+                        elif pos == "5":
+                            self.set_button(self.button5, 2)
+                        elif pos == "6":
+                            self.set_button(self.button6, 2)
+                        elif pos == "7":
+                            self.set_button(self.button7, 2)
+                        elif pos == "8":
+                            self.set_button(self.button8, 2)
+                        elif pos == "9":
+                            self.set_button(self.button9, 2)
+                        num_of_moves += 1
+                        print("Reached here1")
+                        winner = s.recv(1).decode("utf-8")
+                        print("Reached here2")
+                        player_winner = s.recv(1).decode("utf-8")
+                        print("Player Winner 1:", player_winner)
+                        print("Winner 1:", winner)
+                        self.wait_label['text'] = ""
+                        self.submit['state'] = 'normal'
+                        turn = 1
+                print("Num of moves:", num_of_moves)
                 if winner == "T":
-                    global player
+                    print("There was a winner")
+                    if str(player) == player_winner:
+                        result_msg = "Winner Winner Chicken Dinner!"
+                    else:
+                        result_msg = "You lose!"
+                    self.reset_button()
+                    reset_vars()
+                    self.controller.show_frame("Result")
+                    player = 0
+                    break
+                elif num_of_moves == 9:
+                    print("There was no winner. DRAW")
+                    result_msg = "It's a draw! No one wins."
+                    self.reset_button()
+                    reset_vars()
+                    self.controller.show_frame("Result")
                     player = 0
                     break
 
     def listen_for_winner(self):
+        global player, turn, winner, player_winner, num_of_moves, result_msg
         while True:
             if player == 0:
                 continue
 
-            global turn
             while True:
                 if turn == 0:
                     continue
                 else:
-                    global winner
-                    winner = s.recv(1).decode("utf-8")
-                    print("Winner:", winner)
-                    if winner == "T":
-                        print("There was a winner")
-                        for i in self.button_list:
-                            i['state'] = 'disabled'
-                        self.submit['state'] = 'disabled'
-                        self.reset_button()
-                        self.controller.show_frame("Result")
-                        global player
-                        player = 0
-                        break
-                    turn = 0
+                    print("Listen_for_winner")
+                    if winner == "T" or num_of_moves == 9:
+                        pass
+                    else:
+                        winner = s.recv(1).decode("utf-8")
+                        player_winner = s.recv(1).decode("utf-8")
+                        print("Player Winner 2:", player_winner)
+                        print("Winner 2:", winner)
+                        turn = 0
+                print("Num of moves:", num_of_moves)
+                if winner == "T":
+                    print("There was a winner")
+                    if str(player) == player_winner:
+                        result_msg = "Winner Winner Chicken Dinner!"
+                    self.reset_button()
+                    reset_vars()
+                    self.controller.show_frame("Result")
+                    player = 0
+                    break
+                elif num_of_moves == 9:
+                    print("There was no winner. DRAW")
+                    result_msg = "It's a draw! No one wins."
+                    self.reset_button()
+                    reset_vars()
+                    self.controller.show_frame("Result")
+                    player = 0
+                    break
 
     def reset_button(self):
         for i in self.button_list:
             i['text'] = ""
             i['state'] = "normal"
+        self.submit['state'] = "normal"
 
     @staticmethod
     def set_button(button, who):
@@ -247,16 +284,26 @@ class Wait(tk.Frame):  # This window waits for the other player to submit
 class Result(tk.Frame):  # This window waits for the other player to submit
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.player_num = 0
         self.controller = controller
-        print("Here already")
-        label = tk.Label(self, text="Winner winner chicken dinner play[i] wins")
-        label.pack(side="top", fill="x", pady=100, padx=100)
+        self.winner_label = tk.Label(self, text="Winner winner chicken dinner play[i] wins")
+        self.winner_label.pack(side="top", fill="x", pady=100, padx=100)
         label = tk.Label(self, text="Do you want to play again?")
         label.place(relx=.6, rely=.4, anchor="center")
         user = tk.Button(self, text="Play Again", command=lambda: [controller.show_frame("Wait"), s.send(b"T"), _thread.start_new_thread(self.waiting, ())])
         quits = tk.Button(self, text="Quit", command=lambda: [controller.quit(), s.send(b"F")])  # This quits the program
         user.place(relx=.4, rely=.7, anchor="center")
         quits.place(relx=.6, rely=.7, anchor="center")
+        _thread.start_new_thread(self.listen_for_winner, ())
+
+    def listen_for_winner(self):
+        global result_msg
+        while True:
+            if result_msg == "":
+                continue
+            else:
+                self.winner_label['text'] = result_msg
+                result_msg = ""
 
     def waiting(self):
         while True:  # while True
@@ -275,6 +322,14 @@ class Result(tk.Frame):  # This window waits for the other player to submit
         winner = s.recv(1).decode("utf-8")
         print("Winner:", winner)
 
+
+def reset_vars():
+    global player, turn, winner, num_of_moves
+    player = 0
+    turn = 0
+    num_of_moves = 0
+    winner = ""
+
 host = socket.gethostname()  # Server part
 port = 1234
 s = socket.socket()
@@ -282,5 +337,8 @@ s.connect((host, port))
 player = 0
 turn = 0
 winner = ""
+player_winner = ""
+num_of_moves = 0
+result_msg = ""
 
 MainWindow().mainloop()

@@ -23,6 +23,7 @@ def client_connection(client_num):
 def play_game(player1, player2):
     print("Starting a game of Tic Tac Toe")
     print("With", player1[1], "and", player2[1])
+    print("Play Game 1: Sent both", "A")
     player1[0].send(b"A")
     player2[0].send(b"A")
 
@@ -33,20 +34,23 @@ def play_game(player1, player2):
 
     player1_turn = True
     winner = False
+    print("Play game 2: Sent 1 and 2")
     player1[0].send(b"1")
     player2[0].send(b"2")
     send_winner(winner, player1[0], player2[0])
+    num_of_moves = 0
     while not winner:
-        # send_board(choices, player1[0], player2[0])
-
         if player1_turn:
-            choice = player1[0].recv(1024).decode("utf-8")
+            choice = player1[0].recv(1).decode("utf-8")
             choices[int(choice) - 1] = "X"
+            print("Sent player 2:", choice)
             player2[0].send(choice.encode())
         else:
-            choice = player2[0].recv(1024).decode("utf-8")
+            choice = player2[0].recv(1).decode("utf-8")
             choices[int(choice) - 1] = "O"
+            print("Sent player 1:", choice)
             player1[0].send(choice.encode())
+        num_of_moves += 1
 
         player1_turn = not player1_turn
 
@@ -54,43 +58,49 @@ def play_game(player1, player2):
             y = x * 3
             if choices[y] == choices[(y + 1)] and choices[y] == choices[(y + 2)]:
                 winner = True
-                send_winner(winner, player1[0], player2[0])
+                break
             if choices[x] == choices[(x + 3)] and choices[x] == choices[(x + 6)]:
                 winner = True
-                send_winner(winner, player1[0], player2[0])
-
+                break
         if ((choices[0] == choices[4] and choices[0] == choices[8]) or
                 (choices[2] == choices[4] and choices[4] == choices[6])):
             winner = True
-            send_winner(winner, player1[0], player2[0])
 
         send_winner(winner, player1[0], player2[0])
+        if winner:
+            break
+        send_player_win("0", player1[0], player2[0])
 
-    if not player1_turn:
-        print("Player 1 wins!")
-    else:
-        print("Player 2 wins!")
+        if num_of_moves == 9:
+            print("Draw!")
+            break
+
+        print("Reached here")
+
+    if winner:
+        if not player1_turn:
+            send_player_win("1", player1[0], player2[0])
+        else:
+            send_player_win("2", player1[0], player2[0])
 
     player1[2] = False
     player2[2] = False
 
 
+def send_player_win(player_winner, conn1, conn2):
+    print("(Player_win: Sent both", player_winner)
+    conn1.send(player_winner.encode())
+    conn2.send(player_winner.encode())
+
+
 def send_winner(winner, conn1, conn2):
+    print("Send Winner: Sent both", winner)
     if winner:
         conn1.send(b"T")
         conn2.send(b"T")
     else:
         conn1.send(b"F")
         conn2.send(b"F")
-
-
-def send_board(choices, conn1, conn2):
-    board = "|\n -----\n|" + choices[0] + "|" + choices[1] + "|" + choices[2] + \
-            "|\n -----\n|" + choices[3] + "|" + choices[4] + "|" + choices[5] + \
-            "|\n -----\n|" + choices[6] + "|" + choices[7] + "|" + choices[8] + \
-            "|\n -----\n|"
-    conn1.send(board.encode())
-    conn2.send(board.encode())
 
 
 def wait_to_play():
