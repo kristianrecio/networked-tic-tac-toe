@@ -1,0 +1,319 @@
+Sebastian Gawenda
+Nathanael Carr
+Kristian Recio
+CSCI 4341-01
+Summer 1 2017 UTRGV
+
+Networked Tic Tac Toe Game Pseudocode
+
+
+- Server
++client_connection(client_num)
++play_game(player1, player2)
++send_winner(winner, conn1, conn2)
++send_board
++wait_to_play
++add_client
+
+client_connection(client_num)
+	get connection from client_num[0]
+	get address from client_num[1]
+	while True
+		if nothing in client_num[2]
+			recieve message from connection
+		if message is T
+			append client_num to paired
+			console print "client is wating to play"
+		elif message is F
+			close connection and empty clients
+
+play_game(player1, player2)
+	both players send confirmation
+	initialize choices []
+	#inspect choices
+	for x in range of choices
+		append x + 1 to choices
+	player 1 turn and winner set to false
+	player 1 sends '1'
+	player 2 sends '2'
+	send winner to server
+
+	while winner is false
+		if player1 turn
+			recieve choice from player1
+			send 'X' to player2
+		else
+			recieve choice from player2
+			send 'O' to player1
+
+		not player1 turn
+
+		#inspect choices for win state
+		for x in range 3
+			 = x * 3
+			f choices[y] = [y+1] = [y+2], send winner = true
+			f choices[x] = [x+3] = [x+6], send winner = true
+		if choices[0] = [4] = [8] or [2] = [4] = [6]
+			send winner = true
+
+	if not player1 turn
+		print player1 wins
+	else
+		print plater 2 wins
+
+	player1[2] and player2[2] = false
+
+
+send_winner(winner, conn1, conn2)
+	if winner is true
+		send T to conn1 and conn2
+	else send F to conn1 and conn2
+
+def wait_to_play()
+	while true
+		is paired list length > 2
+			start thread play_game
+
+add-client(client)
+	added is false
+	pos is none
+	for i in length of clients
+		if element is empty
+			insert client into element
+			pos = i
+			added is true
+			break loop
+
+	if added is still false
+		append client to clients
+		pos = length of clients - 1
+
+	return pos
+
+#start the program
+create a socket
+get the host
+choose the port
+connect tp host through port
+intialize client list
+initialize paired list
+start thread wuth wait_to_play
+server starts to listen for clients
+while true
+	accept connection from client
+	call add_client to pos
+	start new thread for client_connection
+
+
+
+-Client
+-------------
+-MainWindow(tk.Tk)
+	+_init_(self)
+	+show_frame(self, page_name)
+-Start(tk.Frame)
+	+_init_(self, parent, controller)
+	+waiting(self)
+-User(tk.Frame)
+	+_init_(self, parent, controller)
+	+toggle_text(self, button)
+	+set_move(self, move)
+	+buttons(self)
+	+send_move(self)
+	+listen_for_move
+	+listen_for_winner
+	+reset_button
+	+reset_vars
+	+set_button
+-Wait(tl.Frame)
+	+_init_
+-Result(tk.Frame)
+	+_init_(self, parent, controller)
+	+waiting(self)
+
+
+Class MainWindow(tk.Tk)
+	_init_(self)
+		initialize tk
+		initialize container as tk frame
+		set title to "Network Tic Tac Toe"
+		pack container
+		configure grid rows and columns
+		initialize frames
+
+		for F in Start, User, Wait, Result
+			set page_name as F._name_
+			set frame to F(parent=container, 						controller=self)
+			set frames[page-name] to frame
+		call show_frame
+
+	show_frame(self, page_name)
+		set frame to frames[page_name]
+		raise frame
+
+Class Start(tk.Frame)
+	_init_(self, parent, controller)
+		initialize frame
+		initialize controller
+		set label as "Welcome to Network Tic Tac Toe"
+		pack label
+		user button commands(show_frame("wait"), send 'T' to 			server, start new thread(waiting))
+		quits button commands(quit, send 'F' to server)
+		place user and quits buttons
+
+	waiting(self)
+		while True
+			x receives string from server
+			if X is A
+				show User frame and break
+		declare global player
+		player recieves int from server
+		if player is 1
+			declare global turn and set to 1
+		declare global winner
+		winner receives value from server
+
+Class User(tk.Frame)
+	_init_(self, parent, controller)
+		initialize frame
+		initialize controller
+		initialize move
+
+		initialize and place player_label
+		initialize and place wait_label
+		initialize button_list
+		initialize buttons()
+		start new thread(listen_for_move)
+		start new thread(listen_for_winner)
+
+	toggle_text(self, buttons)
+		declare global player
+		for i in button_list
+			if button state is 'disabled', continue
+			else set button text to blank
+		if player = 1, st button test to 'X'
+		else set button text to 'O'
+
+	set_move(self, move)
+		initialize move
+
+	buttons(self)
+		set buttons x = 1 - 9 with template statement:
+		*
+		set buttonx as tk.Button(self, text = '', width, 			height, command = call toggle_text(buttonx), call 			set_move('1'))
+		place button
+		append buttonx to button_list
+		*
+		set submit as tk.Button(self, text = '', command = 			call send_move
+		place submit button
+
+	send_move(self)
+		declare global turn
+		if turn is 1 and move is blank
+			send move to server
+			for i in length of button_list + 1
+				if str(i) = move
+					set button(button_list[i - 1], 1)
+					break for loop
+			set turn to 0
+
+
+	listen_for_move(self)
+		while True
+			if player is 0
+				continue
+			set player_label text to "player" + str(player)
+
+			while True
+				declare globals turn and winner
+				if turn is 1, continue
+				else
+					set submit state to 'disabled'
+					set wait label to 'waiting for other 						player'
+					if winner is T, break
+					pos receives int from server
+					set button according to pos
+					winner recieves text from server
+					set turn to 1
+					set wait_label to blank
+					set submit state to normal
+				if winner is 'T'
+					set global player to 0 and break
+
+
+	listen_for_winner(self)
+		while True
+			if player is 0, conitnue
+			declare global turn
+			while True
+				if turn is 0, conitnue
+				else
+					global winner receives string from 						server
+					if winner is 'T'
+						disable button states
+						call reset_vars
+						call reset_buttons
+						show frame "Result"
+						set global player to 0
+						break
+					set turn to 0
+
+	reset_button(self)
+		for i in button_list
+			set i text to blank
+			set i state to normal
+
+
+	static method set_button(button, who)
+		global player
+			if who is 1
+				if player 1 set button text to 'X'						else set to 'O'
+				set button state to 'disabled'
+			else
+				if player 2 set button text to 'X'
+				else set to 'O'
+				set button state to 'disabled'
+
+
+Class Wait(tk.Frame)
+	_init_(self, parent, controller)
+		initialize frame
+		initialize controller
+		set label to "Please wait for other player"
+		pack label
+
+Class Result(tl.Frame)
+	_init_(self, parent, controller)
+		initialize frame
+		initialize controller
+		set label to "Winner winner chicken dinner, play[i]"
+		pack label
+		set label to "Do you want to play again?"
+		place label
+		user button(text = "Play Again", commands = call			show_frame('Wait'), send T to server, start new 			thread(waiting)
+		quits button(text = "Quit", commands = call quit, 			send 'F' to server)
+		place user
+		place quits
+
+	waiting(self)
+		while true
+			x receives string from server
+			if x is A, show User frame, break
+
+		declare global player
+		player receives int from server
+		is player is 1
+			declare global turn as 1
+		global winner
+		winner receives string from server
+
+initialize host
+declare port
+initialize socket
+connect to server with host and port
+declare player as 0
+declare turn as 0
+declare winner as blank
+
+run main loop
+
