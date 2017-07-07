@@ -141,7 +141,6 @@ class User(tk.Frame):  # This is the user windows
     def send_move(self):
         global turn, num_of_moves
         if turn == 1 and self.move != "":
-            print("Sent:", self.move)
             num_of_moves += 1
             s.send(self.move.encode())
             for i in range(len(self.button_list) + 1):
@@ -160,14 +159,12 @@ class User(tk.Frame):  # This is the user windows
                 if turn == 1:
                     continue
                 else:
-                    print("Listen for move")
                     self.submit['state'] = 'disabled'
                     self.wait_label['text'] = "Waiting for other player"
                     if winner == "T" or num_of_moves == 9:
                         pass
                     else:
                         pos = s.recv(1).decode("utf-8")
-                        print("pos:", pos)
                         if pos == "1":
                             self.set_button(self.button1, 2)
                         elif pos == "2":
@@ -187,18 +184,14 @@ class User(tk.Frame):  # This is the user windows
                         elif pos == "9":
                             self.set_button(self.button9, 2)
                         num_of_moves += 1
-                        print("Reached here1")
                         winner = s.recv(1).decode("utf-8")
-                        print("Reached here2")
                         player_winner = s.recv(1).decode("utf-8")
-                        print("Player Winner 1:", player_winner)
-                        print("Winner 1:", winner)
                         self.wait_label['text'] = ""
                         self.submit['state'] = 'normal'
                         turn = 1
-                print("Num of moves:", num_of_moves)
+
                 if winner == "T":
-                    print("There was a winner")
+
                     if str(player) == player_winner:
                         result_msg = "Winner Winner Chicken Dinner!"
                     else:
@@ -209,7 +202,7 @@ class User(tk.Frame):  # This is the user windows
                     player = 0
                     break
                 elif num_of_moves == 9:
-                    print("There was no winner. DRAW")
+
                     result_msg = "It's a draw! No one wins."
                     self.reset_button()
                     reset_vars()
@@ -227,18 +220,17 @@ class User(tk.Frame):  # This is the user windows
                 if turn == 0:
                     continue
                 else:
-                    print("Listen_for_winner")
+
                     if winner == "T" or num_of_moves == 9:
                         pass
                     else:
                         winner = s.recv(1).decode("utf-8")
                         player_winner = s.recv(1).decode("utf-8")
-                        print("Player Winner 2:", player_winner)
-                        print("Winner 2:", winner)
+
                         turn = 0
-                print("Num of moves:", num_of_moves)
+
                 if winner == "T":
-                    print("There was a winner")
+
                     if str(player) == player_winner:
                         result_msg = "Winner Winner Chicken Dinner!"
                     self.reset_button()
@@ -247,7 +239,7 @@ class User(tk.Frame):  # This is the user windows
                     player = 0
                     break
                 elif num_of_moves == 9:
-                    print("There was no winner. DRAW")
+
                     result_msg = "It's a draw! No one wins."
                     self.reset_button()
                     reset_vars()
@@ -276,7 +268,6 @@ class Wait(tk.Frame):  # This window waits for the other player to submit
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        print("Here already")
         label = tk.Label(self, text="Please waiting for other player")
         label.pack(side="top", fill="x", pady=100, padx=100)
 
@@ -308,19 +299,19 @@ class Result(tk.Frame):  # This window waits for the other player to submit
     def waiting(self):
         while True:  # while True
             x = s.recv(1).decode("utf-8")  # Waits to receive string from server
-            print("X: ", x)
+
             if x == "A":  # If received string is "found"
                 self.controller.show_frame("User")
                 break
         global player
         player = int(s.recv(1).decode("utf-8"))
-        print("Player:", str(player))
+
         if player == 1:
             global turn
             turn = 1
         global winner
         winner = s.recv(1).decode("utf-8")
-        print("Winner:", winner)
+
 
 
 def reset_vars():

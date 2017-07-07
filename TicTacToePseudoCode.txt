@@ -200,11 +200,11 @@ Class User(tk.Frame)
 	buttons(self)
 		set buttons x = 1 - 9 with template statement:
 		*
-		set buttonx as tk.Button(self, text = '', width, 			height, command = call toggle_text(buttonx), call 			set_move('1'))
+		set buttonx as tk.Button(self, text = '', width, height, command = call toggle_text(buttonx), call set_move('1'))
 		place button
 		append buttonx to button_list
 		*
-		set submit as tk.Button(self, text = '', command = 			call send_move
+		set submit as tk.Button(self, text = '', command = call send_move)
 		place submit button
 
 	send_move(self)
@@ -229,7 +229,7 @@ Class User(tk.Frame)
 				if turn is 1, continue
 				else
 					set submit state to 'disabled'
-					set wait label to 'waiting for other 						player'
+					set wait label to 'waiting for other player'
 					if winner is T, break
 					pos receives int from server
 					set button according to pos
@@ -248,7 +248,7 @@ Class User(tk.Frame)
 			while True
 				if turn is 0, conitnue
 				else
-					global winner receives string from 						server
+					global winner receives string from server
 					if winner is 'T'
 						disable button states
 						call reset_vars
@@ -267,7 +267,7 @@ Class User(tk.Frame)
 	static method set_button(button, who)
 		global player
 			if who is 1
-				if player 1 set button text to 'X'						else set to 'O'
+				if player 1 set button text to 'X' else set to 'O'
 				set button state to 'disabled'
 			else
 				if player 2 set button text to 'X'
@@ -290,8 +290,9 @@ Class Result(tl.Frame)
 		pack label
 		set label to "Do you want to play again?"
 		place label
-		user button(text = "Play Again", commands = call			show_frame('Wait'), send T to server, start new 			thread(waiting)
-		quits button(text = "Quit", commands = call quit, 			send 'F' to server)
+		user button(text = "Play Again", commands = call
+		show_frame('Wait'), send T to server, start new thread(waiting)
+		quits button(text = "Quit", commands = call quit, send 'F' to server)
 		place user
 		place quits
 
